@@ -417,9 +417,6 @@ async function entrarComSenha(email, senha) {
 async function buscarUsuario(u) {
   let { data } = await sb.from('usuarios').select('nome,perfil').eq('auth_id', u.id).maybeSingle();
   if (data) return data;
-  // Equipe que usa só o portal (sem acesso ao Sistema IP)
-  const { data: ap } = await sb.from('acesso_portal').select('nome').eq('email', u.email.toLowerCase()).eq('ativo', true).maybeSingle();
-  if (ap) return { nome: ap.nome, perfil: 'portal' };
   const { data: pend } = await sb.from('usuarios_pendentes').select('*').eq('email', u.email).maybeSingle();
   if (!pend) return null;
   const { error } = await sb.from('usuarios').insert({ auth_id: u.id, nome: pend.nome, email: pend.email, perfil: pend.perfil, gerencia_id: pend.gerencia_id });
