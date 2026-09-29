@@ -3,138 +3,248 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Portal Índice de Prevenção SSMA</title>
+<title>Portal Índice de Prevenção SSMA | Usina Santa Adélia</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 :root{
-  --verde:#07583C; --verde-2:#0A6B4A; --lima:#B3DD64; --lima-suave:#EAF5D6;
-  --fundo:#F2F5F0; --papel:#FFFFFF; --tinta:#1C2B22; --muted:#5D6F64;
-  --linha:#D5E3CC; --erro:#B42318; --erro-bg:#FCE8E6; --aviso:#9A6B00; --aviso-bg:#FFF4DB;
-  --cinza-bg:#EEF1EE;
+  /* Paleta oficial */
+  --branco:#FFFFFF; --verde:#07583C; --lima:#B3DD64; --laranja:#FDB952; --vermelho:#DF4636;
+  /* Derivados */
+  --verde-esc:#054530; --verde-2:#0A6B4A; --verde-bg:#E8F1EC;
+  --lima-bg:#F1F8E3; --laranja-bg:#FFF4E0; --laranja-txt:#8A5A00;
+  --vermelho-bg:#FCE9E7; --vermelho-txt:#B8322A;
+  --fundo:#F4F6F5; --tinta:#16241C; --muted:#5F6F66; --linha:#DDE5E0; --linha-2:#EDF1EE;
+  --sombra:0 1px 2px rgba(16,40,28,.06),0 2px 8px rgba(16,40,28,.05);
+  --sombra-h:0 4px 10px rgba(16,40,28,.08),0 12px 28px rgba(16,40,28,.08);
 }
 *{box-sizing:border-box}
 html,body{margin:0}
-body{font-family:'Barlow',system-ui,-apple-system,'Segoe UI',Arial,sans-serif;background:var(--fundo);color:var(--tinta);font-size:15px;line-height:1.5}
+body{font-family:'Open Sans',system-ui,-apple-system,'Segoe UI',Arial,sans-serif;background:var(--fundo);color:var(--tinta);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
 a{color:inherit}
 :focus-visible{outline:3px solid var(--lima);outline-offset:2px}
+svg{flex-shrink:0}
 
-header.topo{background:var(--verde);color:#fff;border-bottom:4px solid var(--lima)}
-.topo-inner{max-width:1180px;margin:0 auto;padding:26px 24px 22px;display:flex;gap:24px;align-items:flex-end;flex-wrap:wrap}
-.topo h1{margin:0;font-family:'Barlow Condensed',sans-serif;font-size:34px;line-height:1.05;letter-spacing:.01em}
-.topo .sub{color:var(--lima);font-size:15px;font-weight:500;margin-top:4px}
-.topo .periodo{margin-left:auto;text-align:right}
-.topo .periodo .mes{font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:700;line-height:1}
-.topo .periodo .safra{font-size:13px;color:#CFE6D6}
+/* ── Barra institucional ───────────────────────────── */
+.barra{background:var(--branco);border-bottom:1px solid var(--linha)}
+.barra-in{max-width:1240px;margin:0 auto;padding:0 28px;height:68px;display:flex;align-items:center;gap:18px}
+.marca{display:flex;align-items:center;gap:12px;text-decoration:none}
+.marca-ico{width:40px;height:40px;border-radius:8px;background:var(--verde);display:grid;place-items:center}
+.marca-txt{line-height:1.15}
+.marca-txt b{display:block;font-size:15px;font-weight:800;color:var(--verde);letter-spacing:.01em}
+.marca-txt span{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.09em}
+.sep{width:1px;height:32px;background:var(--linha)}
+.sistema{font-size:13px;font-weight:600;color:var(--muted)}
+.barra .dir{margin-left:auto;display:flex;align-items:center;gap:12px}
+.chip{display:inline-flex;align-items:center;gap:8px;padding:7px 12px;border-radius:999px;background:var(--verde-bg);color:var(--verde);font-size:12.5px;font-weight:700}
+.chip .pt{width:8px;height:8px;border-radius:50%;background:var(--lima);box-shadow:0 0 0 3px rgba(179,221,100,.35)}
+.btn-sec{display:inline-flex;align-items:center;gap:7px;padding:8px 14px;border-radius:6px;border:1px solid var(--linha);background:var(--branco);font:600 13px 'Open Sans',sans-serif;color:var(--tinta);cursor:pointer}
+.btn-sec:hover{border-color:var(--verde);color:var(--verde)}
 
-main{max-width:1180px;margin:0 auto;padding:26px 24px 60px}
+/* ── Faixa de título + KPIs ───────────────────────── */
+.hero{background:radial-gradient(circle at 88% 10%,rgba(179,221,100,.14) 0,rgba(179,221,100,0) 38%),linear-gradient(135deg,var(--verde) 0%,var(--verde-esc) 100%);color:var(--branco);position:relative}
+.hero-in{max-width:1240px;margin:0 auto;padding:30px 28px 0;position:relative;z-index:1}
+.migalha{font-size:12px;color:rgba(255,255,255,.7);font-weight:500;margin-bottom:10px}
+.migalha b{color:var(--lima);font-weight:600}
+.hero-top{display:flex;align-items:flex-end;gap:24px;flex-wrap:wrap}
+.hero h1{margin:0;font-size:28px;font-weight:800;letter-spacing:-.01em;line-height:1.15}
+.hero .sub{margin:6px 0 0;font-size:14.5px;color:rgba(255,255,255,.82);max-width:620px}
+.periodo{margin-left:auto;text-align:right;padding-bottom:2px}
+.periodo .rot{font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--lima);font-weight:700}
+.periodo .mes{font-size:22px;font-weight:800;line-height:1.2}
+.periodo .safra{font-size:13px;color:rgba(255,255,255,.75)}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:26px;transform:translateY(34px)}
+.kpi{background:var(--branco);color:var(--tinta);border-radius:10px;padding:16px 18px;box-shadow:var(--sombra-h);display:flex;align-items:center;gap:14px;border-top:4px solid var(--linha)}
+.kpi .ico{width:42px;height:42px;border-radius:10px;display:grid;place-items:center}
+.kpi .v{font-size:26px;font-weight:800;line-height:1}
+.kpi .l{font-size:12.5px;color:var(--muted);font-weight:600;margin-top:4px}
+.kpi.k-crit{border-top-color:var(--vermelho)} .kpi.k-crit .ico{background:var(--vermelho-bg);color:var(--vermelho)} .kpi.k-crit .v{color:var(--vermelho-txt)}
+.kpi.k-aten{border-top-color:var(--laranja)} .kpi.k-aten .ico{background:var(--laranja-bg);color:var(--laranja-txt)} .kpi.k-aten .v{color:var(--laranja-txt)}
+.kpi.k-ok{border-top-color:var(--lima)} .kpi.k-ok .ico{background:var(--lima-bg);color:var(--verde)} .kpi.k-ok .v{color:var(--verde)}
+.kpi.k-atu{border-top-color:var(--verde)} .kpi.k-atu .ico{background:var(--verde-bg);color:var(--verde)} .kpi.k-atu .v{font-size:20px}
 
-.grupo{margin-bottom:30px}
-.grupo h2{margin:0 0 4px;font-size:19px;color:var(--verde)}
-.grupo .quem{margin:0 0 12px;font-size:14px;color:var(--muted)}
-.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:14px}
+/* ── Conteúdo ─────────────────────────────────────── */
+main{max-width:1240px;margin:0 auto;padding:66px 28px 50px}
+.aviso-login{display:flex;gap:12px;align-items:flex-start;background:var(--laranja-bg);border:1px solid #F6D59A;border-left:4px solid var(--laranja);color:var(--laranja-txt);border-radius:8px;padding:12px 16px;font-size:13.5px;margin-bottom:24px}
 
-.card{background:var(--papel);border:1px solid var(--linha);border-radius:8px;display:flex;flex-direction:column}
-.card .cab{padding:16px 18px 10px}
-.card h3{margin:0;font-size:18px;line-height:1.25}
-.card .desc{margin:4px 0 0;font-size:14px;color:var(--muted)}
-.pend{list-style:none;margin:0;padding:6px 18px 12px;display:flex;flex-direction:column;gap:6px;flex:1}
-.pend li{display:flex;gap:10px;align-items:baseline;font-size:14px}
-.pend .num{font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:700;min-width:2.2ch;text-align:right;line-height:1}
+.grupo{margin-bottom:34px}
+.grupo-cab{display:flex;align-items:center;gap:14px;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--linha)}
+.grupo-cab .n{font-size:12px;font-weight:800;color:var(--verde);background:var(--lima);border-radius:6px;padding:4px 8px;letter-spacing:.04em}
+.grupo-cab h2{margin:0;font-size:17px;font-weight:700;color:var(--tinta)}
+.grupo-cab p{margin:0 0 0 auto;font-size:13px;color:var(--muted);text-align:right}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:16px}
+
+.card{background:var(--branco);border:1px solid var(--linha);border-radius:10px;display:flex;flex-direction:column;box-shadow:var(--sombra);position:relative;overflow:hidden;transition:box-shadow .18s,transform .18s}
+.card:hover{box-shadow:var(--sombra-h);transform:translateY(-2px)}
+.card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--linha)}
+.card[data-status="ok"]::before{background:var(--lima)}
+.card[data-status="atencao"]::before{background:var(--laranja)}
+.card[data-status="critico"]::before{background:var(--vermelho)}
+.card[data-status="neutro"]::before{background:var(--verde)}
+.card .cab{padding:18px 20px 12px 22px;display:flex;gap:14px;align-items:flex-start}
+.card .ico{width:44px;height:44px;border-radius:10px;background:var(--verde-bg);color:var(--verde);display:grid;place-items:center}
+.card .tit{flex:1;min-width:0}
+.card h3{margin:0;font-size:16px;font-weight:700;line-height:1.3}
+.card .desc{margin:3px 0 0;font-size:13px;color:var(--muted)}
+.badge{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;padding:4px 9px;border-radius:999px;white-space:nowrap;background:var(--linha-2);color:var(--muted)}
+.badge.ok{background:var(--lima-bg);color:var(--verde)}
+.badge.atencao{background:var(--laranja-bg);color:var(--laranja-txt)}
+.badge.critico{background:var(--vermelho-bg);color:var(--vermelho-txt)}
+.badge.neutro{background:var(--verde-bg);color:var(--verde)}
+
+.pend{list-style:none;margin:0 20px 14px 22px;padding:0;border:1px solid var(--linha-2);border-radius:8px;flex:1}
+.pend li{display:flex;gap:12px;align-items:center;font-size:13.5px;padding:10px 14px;border-top:1px solid var(--linha-2)}
+.pend li:first-child{border-top:none}
+.pend .num{font-size:18px;font-weight:800;min-width:3.4ch;text-align:right;line-height:1;font-variant-numeric:tabular-nums}
 .pend .ok .num{color:var(--verde)}
-.pend .alerta .num{color:var(--erro)}
-.pend .atencao .num{color:var(--aviso)}
+.pend .alerta .num{color:var(--vermelho-txt)}
+.pend .atencao .num{color:var(--laranja-txt)}
 .pend .neutro .num{color:var(--muted)}
+.pend .alerta{background:linear-gradient(90deg,var(--vermelho-bg),transparent 70%)}
 .pend .info{color:var(--muted);font-size:13px}
-.pend .carregando{color:var(--muted);font-size:13px}
-.card .rodape{border-top:1px solid var(--cinza-bg);padding:10px 18px;display:flex;align-items:center;gap:10px}
-.card .rodape .obs{font-size:12px;color:var(--muted);margin-right:auto}
-.btn{display:inline-flex;align-items:center;padding:8px 16px;border-radius:6px;font-weight:600;text-decoration:none;background:var(--verde);color:#fff;border:none}
+.pend .carregando{color:var(--muted);font-size:13px;gap:10px}
+.spin{width:14px;height:14px;border:2px solid var(--linha);border-top-color:var(--verde);border-radius:50%;animation:gira .8s linear infinite}
+@keyframes gira{to{transform:rotate(360deg)}}
+
+.card .rodape{background:#FAFBFA;border-top:1px solid var(--linha-2);padding:11px 20px 11px 22px;display:flex;align-items:center;gap:12px}
+.card .rodape .obs{font-size:12px;color:var(--muted);margin-right:auto;display:flex;align-items:center;gap:6px}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:6px;font-weight:700;font-size:13px;text-decoration:none;background:var(--verde);color:var(--branco);border:none;white-space:nowrap}
 .btn:hover{background:var(--verde-2)}
-.btn.desab{background:#AFC1B6;pointer-events:none}
+.btn.desab{background:#B9C7BF;pointer-events:none}
 
-.aviso-login{background:var(--aviso-bg);border:1px solid #F1D48A;color:var(--aviso);border-radius:6px;padding:10px 14px;font-size:14px;margin-bottom:20px}
-footer{max-width:1180px;margin:0 auto;padding:0 24px 30px;font-size:12px;color:var(--muted)}
+footer{border-top:1px solid var(--linha);background:var(--branco)}
+.foot-in{max-width:1240px;margin:0 auto;padding:18px 28px;display:flex;gap:16px;flex-wrap:wrap;align-items:center;font-size:12px;color:var(--muted)}
+.foot-in b{color:var(--verde)}
+.foot-in .dir{margin-left:auto}
 
-@media (max-width:560px){
-  .topo .periodo{margin-left:0;text-align:left}
+@media (max-width:980px){ .kpis{grid-template-columns:repeat(2,1fr)} .grupo-cab p{display:none} }
+@media (max-width:640px){
+  .barra-in{padding:0 16px}.sep,.sistema,.chip{display:none}
+  .hero-in{padding:24px 16px 0}.hero h1{font-size:23px}
+  .periodo{margin-left:0;text-align:left}
+  .kpis{gap:10px}.kpi{padding:12px}.kpi .ico{display:none}
+  main{padding:60px 16px 40px}
   .cards{grid-template-columns:1fr}
+  .foot-in{padding:16px}.foot-in .dir{margin-left:0}
 }
 </style>
 </head>
 <body>
 
-<header class="topo">
-  <div class="topo-inner">
-    <div>
-      <h1>Portal Índice de Prevenção SSMA</h1>
-      <div class="sub">IP VIDAS — telas de lançamento, apuração e acompanhamento</div>
-    </div>
-    <div class="periodo">
-      <div class="mes" id="p-mes"></div>
-      <div class="safra" id="p-safra">Carregando safra...</div>
+<!-- Ícones reutilizáveis -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-escudo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6l8-3z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></symbol>
+    <symbol id="i-alvo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></symbol>
+    <symbol id="i-pessoas" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.5 3.3-5.5 6.5-5.5s5.9 2 6.5 5.5"/><path d="M16 4.8a3.5 3.5 0 010 6.4M18.5 14.8c1.7.8 2.7 2.6 3 5.2"/></symbol>
+    <symbol id="i-folha" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 19c0-8 5-14 15-15-1 10-7 15-15 15z"/><path d="M5 19l7-7"/></symbol>
+    <symbol id="i-hub" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="6" height="6" rx="1"/><path d="M12 3v6M12 15v6M3 12h6M15 12h6"/><circle cx="12" cy="3" r="1"/><circle cx="12" cy="21" r="1"/><circle cx="3" cy="12" r="1"/><circle cx="21" cy="12" r="1"/></symbol>
+    <symbol id="i-grafico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/></symbol>
+    <symbol id="i-alerta" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l10 18H2L12 3z"/><path d="M12 10v5M12 18h.01"/></symbol>
+    <symbol id="i-relogio" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 12l3 3 5-6"/></symbol>
+    <symbol id="i-atualizar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 10-2.3 5.7M20 4v7h-7"/></symbol>
+    <symbol id="i-seta" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+    <symbol id="i-cal" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></symbol>
+  </defs>
+</svg>
+
+<div class="barra">
+  <div class="barra-in">
+    <a class="marca" href="#" aria-label="Portal IP — início">
+      <span class="marca-ico"><svg width="22" height="22" style="color:#B3DD64"><use href="#i-escudo"/></svg></span>
+      <span class="marca-txt"><b>Usina Santa Adélia</b><span>Saúde, Segurança e Meio Ambiente</span></span>
+    </a>
+    <span class="sep"></span>
+    <span class="sistema">IP VIDAS</span>
+    <div class="dir">
+      <span class="chip"><span class="pt"></span><span id="chip-safra">Safra —</span></span>
+      <button class="btn-sec" type="button" onclick="location.reload()"><svg width="15" height="15"><use href="#i-atualizar"/></svg>Atualizar</button>
     </div>
   </div>
-</header>
+</div>
+
+<section class="hero">
+  <div class="hero-in">
+    <div class="migalha">SSMA &nbsp;/&nbsp; <b>Portal Índice de Prevenção</b></div>
+    <div class="hero-top">
+      <div>
+        <h1>Portal Índice de Prevenção SSMA</h1>
+        <p class="sub">Acesso centralizado às telas de lançamento, apuração e acompanhamento do IP VIDAS, com as pendências do mês de cada módulo.</p>
+      </div>
+      <div class="periodo">
+        <div class="rot">Período de referência</div>
+        <div class="mes" id="p-mes"></div>
+        <div class="safra" id="p-safra">Carregando safra...</div>
+      </div>
+    </div>
+    <div class="kpis">
+      <div class="kpi k-crit"><span class="ico"><svg width="20" height="20"><use href="#i-alerta"/></svg></span><div><div class="v" id="k-crit">–</div><div class="l">Módulos críticos</div></div></div>
+      <div class="kpi k-aten"><span class="ico"><svg width="20" height="20"><use href="#i-relogio"/></svg></span><div><div class="v" id="k-aten">–</div><div class="l">Módulos em atenção</div></div></div>
+      <div class="kpi k-ok"><span class="ico"><svg width="20" height="20"><use href="#i-check"/></svg></span><div><div class="v" id="k-ok">–</div><div class="l">Módulos em dia</div></div></div>
+      <div class="kpi k-atu"><span class="ico"><svg width="20" height="20"><use href="#i-cal"/></svg></span><div><div class="v" id="k-atu">–</div><div class="l">Última leitura dos dados</div></div></div>
+    </div>
+  </div>
+</section>
 
 <main>
   <div id="aviso"></div>
 
   <section class="grupo">
-    <h2>Técnicos de Segurança</h2>
-    <p class="quem">Planejamento e baixa dos simulados e dos coachings de liderança.</p>
+    <div class="grupo-cab"><span class="n">01</span><h2>Técnicos de Segurança</h2><p>Planejamento e baixa dos simulados e dos coachings de liderança</p></div>
     <div class="cards">
       <article class="card" id="c-simulados">
-        <div class="cab"><h3>Cronograma de Simulados</h3>
-          <p class="desc">Cenários por unidade, datas definidas pelas áreas e baixa com evidência.</p></div>
-        <ul class="pend"><li class="carregando">Carregando pendências...</li></ul>
-        <div class="rodape"><span class="obs"></span><a class="btn" data-link="simulados">Abrir</a></div>
+        <div class="cab"><span class="ico"><svg width="22" height="22"><use href="#i-alvo"/></svg></span>
+          <div class="tit"><h3>Cronograma de Simulados</h3><p class="desc">Cenários por unidade, datas definidas pelas áreas e baixa com evidência.</p></div>
+          <span class="badge">—</span></div>
+        <ul class="pend"><li class="carregando"><span class="spin"></span>Carregando pendências...</li></ul>
+        <div class="rodape"><span class="obs"></span><a class="btn" data-link="simulados">Acessar <svg width="14" height="14"><use href="#i-seta"/></svg></a></div>
       </article>
       <article class="card" id="c-coaching">
-        <div class="cab"><h3>Cronograma de Coaching</h3>
-          <p class="desc">Coaching de liderança do semestre, por gerência e líder.</p></div>
-        <ul class="pend"><li class="carregando">Carregando pendências...</li></ul>
-        <div class="rodape"><span class="obs"></span><a class="btn" data-link="coaching">Abrir</a></div>
+        <div class="cab"><span class="ico"><svg width="22" height="22"><use href="#i-pessoas"/></svg></span>
+          <div class="tit"><h3>Cronograma de Coaching</h3><p class="desc">Coaching de liderança do semestre, por gerência e líder.</p></div>
+          <span class="badge">—</span></div>
+        <ul class="pend"><li class="carregando"><span class="spin"></span>Carregando pendências...</li></ul>
+        <div class="rodape"><span class="obs"></span><a class="btn" data-link="coaching">Acessar <svg width="14" height="14"><use href="#i-seta"/></svg></a></div>
       </article>
     </div>
   </section>
 
   <section class="grupo">
-    <h2>Meio Ambiente</h2>
-    <p class="quem">Registro das avaliações amostrais que alimentam o bloco Meio Ambiente do IP.</p>
+    <div class="grupo-cab"><span class="n">02</span><h2>Meio Ambiente</h2><p>Avaliações amostrais que alimentam o bloco Meio Ambiente do IP</p></div>
     <div class="cards">
       <article class="card" id="c-ma">
-        <div class="cab"><h3>Indicadores de Meio Ambiente</h3>
-          <p class="desc">Aceiros, resíduos, caixas SAO, Ringelmann, captação e demais indicadores.</p></div>
-        <ul class="pend"><li class="carregando">Carregando pendências...</li></ul>
-        <div class="rodape"><span class="obs"></span><a class="btn" data-link="ma">Abrir</a></div>
+        <div class="cab"><span class="ico"><svg width="22" height="22"><use href="#i-folha"/></svg></span>
+          <div class="tit"><h3>Indicadores de Meio Ambiente</h3><p class="desc">Aceiros, resíduos, caixas SAO, Ringelmann, captação e demais indicadores.</p></div>
+          <span class="badge">—</span></div>
+        <ul class="pend"><li class="carregando"><span class="spin"></span>Carregando pendências...</li></ul>
+        <div class="rodape"><span class="obs"></span><a class="btn" data-link="ma">Acessar <svg width="14" height="14"><use href="#i-seta"/></svg></a></div>
       </article>
     </div>
   </section>
 
   <section class="grupo">
-    <h2>Gestão do IP</h2>
-    <p class="quem">Apuração das fontes, gravação no IP e relatórios.</p>
+    <div class="grupo-cab"><span class="n">03</span><h2>Gestão do IP</h2><p>Apuração das fontes, gravação no IP e relatórios</p></div>
     <div class="cards">
       <article class="card" id="c-hub">
-        <div class="cab"><h3>Hub de Integração e Relatórios</h3>
-          <p class="desc">Importações, apurações dos cronogramas e de Meio Ambiente, PowerPoint mensal.</p></div>
-        <ul class="pend"><li class="carregando">Carregando situação...</li></ul>
-        <div class="rodape"><span class="obs"></span><a class="btn" data-link="hub">Abrir</a></div>
-      </article>
-      <article class="card" id="c-ip">
-        <div class="cab"><h3>Sistema IP VIDAS</h3>
-          <p class="desc">Lançamentos por gerência, configuração de indicadores e pesos, acumulado da safra.</p></div>
-        <ul class="pend"><li class="info">Acesso ao sistema principal.</li></ul>
-        <div class="rodape"><span class="obs"></span><a class="btn" data-link="ip">Abrir</a></div>
+        <div class="cab"><span class="ico"><svg width="22" height="22"><use href="#i-hub"/></svg></span>
+          <div class="tit"><h3>Hub de Integração e Relatórios</h3><p class="desc">Importações, apurações dos cronogramas e de Meio Ambiente, PowerPoint mensal.</p></div>
+          <span class="badge">—</span></div>
+        <ul class="pend"><li class="carregando"><span class="spin"></span>Carregando situação...</li></ul>
+        <div class="rodape"><span class="obs"></span><a class="btn" data-link="hub">Acessar <svg width="14" height="14"><use href="#i-seta"/></svg></a></div>
       </article>
     </div>
   </section>
 </main>
 
-<footer id="rodape">Os números são lidos do Supabase ao abrir esta página.</footer>
+<footer>
+  <div class="foot-in">
+    <span><b>Usina Santa Adélia</b> · SSMA · Índice de Prevenção IP VIDAS</span>
+    <span class="dir" id="rodape">Os números são lidos do Supabase ao abrir esta página.</span>
+  </div>
+</footer>
 
 <script>
 // ─────────────────────────────────────────────────────────────
@@ -147,8 +257,7 @@ const LINKS = {
   simulados: 'https://tkichelewski-web.github.io/Cronograma-simulados/',
   coaching:  'https://tkichelewski-web.github.io/Cronograma-coaching/',
   ma:        'https://tkichelewski-web.github.io/indicadores-meio-ambiente/',
-  hub:       'https://tkichelewski-web.github.io/Hub-de-Integracao-e-Relatorios/',
-  ip:        ''                               // ← cole o link do sistema IP principal
+  hub:       'https://tkichelewski-web.github.io/Hub-de-Integracao-e-Relatorios/'
 };
 
 // Conexão (mesmo projeto e mesma chave pública do Hub)
@@ -159,7 +268,7 @@ const sb = supabase.createClient(SB_URL, SB_KEY, { auth: { persistSession: true,
 const NOMES_MES = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-const normMA = s => String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/\s+/g, '');
+const normMA = s => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/\s+/g, '');
 const pad = n => String(n).padStart(2, '0');
 const agora = new Date();
 const hojeISO = `${agora.getFullYear()}-${pad(agora.getMonth() + 1)}-${pad(agora.getDate())}`;
@@ -176,13 +285,39 @@ document.querySelectorAll('[data-link]').forEach(a => {
   else { a.classList.add('desab'); a.textContent = 'Link a configurar'; a.setAttribute('aria-disabled', 'true'); }
 });
 
+// Situação geral de cada card (alimenta o selo e os KPIs do topo)
+const STATUS_TXT = { critico: 'Crítico', atencao: 'Atenção', ok: 'Em dia', neutro: 'Informativo' };
+const situacao = {};
+function statusDe(itens) {
+  const tipos = itens.filter(it => !it.info).map(it => it.tipo || 'neutro');
+  if (tipos.includes('alerta')) return 'critico';
+  if (tipos.includes('atencao')) return 'atencao';
+  if (tipos.includes('ok') && tipos.every(t => t === 'ok')) return 'ok';
+  if (tipos.includes('ok')) return 'ok';
+  return 'neutro';
+}
+function atualizaKpis() {
+  const v = Object.values(situacao);
+  if (!v.length) return;
+  $('k-crit').textContent = v.filter(s => s === 'critico').length;
+  $('k-aten').textContent = v.filter(s => s === 'atencao').length;
+  $('k-ok').textContent = v.filter(s => s === 'ok').length;
+}
+
 // Pinta a lista de pendências de um card. itens: [{ n, txt, tipo: ok|alerta|atencao|neutro }] ou { info }
 function pinta(cardId, itens, obs) {
   const card = $(cardId);
   card.querySelector('.pend').innerHTML = itens.map(it => it.info
     ? `<li class="info">${it.info}</li>`
     : `<li class="${it.tipo || 'neutro'}"><span class="num">${it.n}</span><span>${it.txt}</span></li>`).join('');
-  card.querySelector('.obs').textContent = obs || '';
+  card.querySelector('.obs').innerHTML = obs ? `<svg width="13" height="13"><use href="#i-cal"/></svg>${esc(obs)}` : '';
+  const st = statusDe(itens);
+  card.dataset.status = st;
+  const b = card.querySelector('.badge');
+  b.className = 'badge ' + st;
+  b.textContent = itens.every(it => it.info) ? 'Sem dados' : STATUS_TXT[st];
+  if (!itens.every(it => it.info)) situacao[cardId] = st;
+  atualizaKpis();
 }
 function falhou(cardId, err) {
   console.error(cardId, err);
@@ -324,12 +459,14 @@ async function init() {
   try { safra = await safraVigente(); }
   catch (e) {
     $('p-safra').textContent = '';
-    $('aviso').innerHTML = `<div class="aviso-login">Não consegui ler o Supabase (${esc(e.message)}). Os links funcionam normalmente; para ver as pendências, faça login no sistema principal neste navegador e recarregue.</div>`;
+    $('chip-safra').textContent = 'Sem conexão';
+    $('aviso').innerHTML = `<div class="aviso-login"><svg width="18" height="18"><use href="#i-alerta"/></svg><div>Não consegui ler o Supabase (${esc(e.message)}). Os links funcionam normalmente; para ver as pendências, faça login no sistema principal neste navegador e recarregue.</div></div>`;
     ['c-simulados', 'c-coaching', 'c-ma', 'c-hub'].forEach(id => pinta(id, [{ info: 'Pendências indisponíveis.' }]));
     return;
   }
-  if (!safra) { $('p-safra').textContent = 'Nenhuma safra cadastrada'; return; }
+  if (!safra) { $('p-safra').textContent = 'Nenhuma safra cadastrada'; $('chip-safra').textContent = 'Sem safra'; return; }
   $('p-safra').textContent = 'Safra ' + safra.nome;
+  $('chip-safra').textContent = 'Safra ' + safra.nome;
 
   await Promise.all([
     pendSimulados(safra).catch(e => falhou('c-simulados', e)),
@@ -337,7 +474,9 @@ async function init() {
     pendMA(safra).catch(e => falhou('c-ma', e)),
     pendHub(safra).catch(e => falhou('c-hub', e))
   ]);
-  $('rodape').textContent = `Números lidos do Supabase em ${fmtData(hojeISO)} às ${pad(agora.getHours())}:${pad(agora.getMinutes())}. Recarregue a página para atualizar.`;
+  const hora = `${pad(agora.getHours())}:${pad(agora.getMinutes())}`;
+  $('k-atu').textContent = `${fmtData(hojeISO).slice(0, 5)} · ${hora}`;
+  $('rodape').textContent = `Números lidos do Supabase em ${fmtData(hojeISO)} às ${hora}. Clique em Atualizar para recarregar.`;
 }
 init();
 </script>
