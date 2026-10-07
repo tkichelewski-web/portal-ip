@@ -150,6 +150,19 @@ footer{max-width:1180px;margin:0 auto;padding:0 24px 30px;font-size:12px;color:v
   </section>
 
   <section class="grupo">
+    <h2>Acidentes</h2>
+    <p class="quem">Comitê e prazo das investigações conforme o procedimento NP.AD.00.03.0002.</p>
+    <div class="cards">
+      <article class="card" id="c-acid">
+        <div class="cab"><h3>Investigação de Acidentes</h3>
+          <p class="desc">Ocorrências com deflator, comitê de análise e prazo de conclusão da investigação.</p></div>
+        <ul class="pend"><li class="carregando">Carregando pendências...</li></ul>
+        <div class="rodape"><span class="obs"></span><a class="btn" data-link="acid">Abrir</a></div>
+      </article>
+    </div>
+  </section>
+
+  <section class="grupo">
     <h2>Emergência</h2>
     <p class="quem">Cadastro e avaliação periódica dos equipamentos de emergência por local.</p>
     <div class="cards">
@@ -223,6 +236,7 @@ const LINKS = {
   ma:        'https://tkichelewski-web.github.io/indicadores-meio-ambiente/',
   comites:   'https://tkichelewski-web.github.io/Comites-SSMA/',
   emerg:     'https://tkichelewski-web.github.io/equipamentos-emergencia/',
+  acid:      'https://tkichelewski-web.github.io/investigacao-acidentes/',
   multas:    'https://tkichelewski-web.github.io/tratamento-multas-ip/',
   hub:       'https://tkichelewski-web.github.io/Hub-de-Integracao-e-Relatorios/'
 };
@@ -362,6 +376,29 @@ async function pendMA(safra) {
   if (naoConf) itens.push({ n: naoConf, txt: plural(naoConf, 'avaliação do mês com não conformidade', 'avaliações do mês com não conformidade'), tipo: 'alerta' });
   if (pares.size) itens.push({ n: `${nunca}/${pares.size}`, txt: `combinações gerência × indicador ainda não avaliadas na safra (${gersNunca} ${plural(gersNunca, 'gerência', 'gerências')})`, tipo: nunca ? 'atencao' : 'ok' });
   pinta('c-ma', itens, `Mês de ${nomeMes(hojeMes)}`);
+}
+
+// ─────────────────────────────────────────────────────────────
+// Investigação de acidentes: análises abertas, vencidas e sem gerência (deflator = SIM)
+// ─────────────────────────────────────────────────────────────
+async function pendAcid(safra) {
+  const { data, error } = await sb.from('acidentes').select('data,classificacao,deflator,gerencia_id,inv_data_conclusao,inv_responsavel,inv_cipa')
+    .eq('deflator', true).gte('data', (safra.ano_ini + '-04-01') > '2026-10-01' ? safra.ano_ini + '-04-01' : '2026-10-01').lte('data', safra.ano_fim + '-03-31'); // controle desde out/2026
+  if (error) throw error;
+  const oc = data || [];
+  if (!oc.length) { pinta('c-acid', [{ info: 'Nenhuma ocorrência com deflator desde outubro/2026.' }]); return; }
+  const prazo = a => /FATAL|GRANDE PROPOR/i.test((a.classificacao || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '')) ? 15 : 7;
+  const limite = a => { const d = new Date(a.data + 'T12:00:00'); d.setDate(d.getDate() + prazo(a)); return d.toISOString().slice(0, 10); };
+  const abertas = oc.filter(a => !a.inv_data_conclusao);
+  const vencidas = abertas.filter(a => limite(a) < hojeISO).length;
+  const semComite = oc.filter(a => !a.inv_responsavel || !a.inv_cipa).length;
+  const semGer = oc.filter(a => !a.gerencia_id).length;
+  const itens = [{ n: oc.filter(a => a.data.slice(0, 7) === hojeMes).length, txt: 'ocorrências com deflator neste mês', tipo: 'neutro' }];
+  if (abertas.length - vencidas) itens.push({ n: abertas.length - vencidas, txt: 'investigações em andamento, dentro do prazo', tipo: 'atencao' });
+  if (vencidas) itens.push({ n: vencidas, txt: plural(vencidas, 'investigação com prazo vencido', 'investigações com prazo vencido'), tipo: 'alerta' });
+  if (semComite) itens.push({ n: semComite, txt: 'sem comitê completo registrado', tipo: 'atencao' });
+  if (semGer) itens.push({ n: semGer, txt: plural(semGer, 'ocorrência sem gerência definida', 'ocorrências sem gerência definida'), tipo: 'alerta' });
+  pinta('c-acid', itens, `Safra ${safra.nome}`);
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -545,7 +582,7 @@ async function init() {
   catch (e) {
     $('p-safra').textContent = '';
     $('aviso').innerHTML = `<div class="aviso-login">Não consegui ler o Supabase (${esc(e.message)}). Os links funcionam normalmente; para ver as pendências, faça login no sistema principal neste navegador e recarregue.</div>`;
-    ['c-simulados', 'c-coaching', 'c-ma', 'c-comites', 'c-emerg', 'c-hub'].forEach(id => pinta(id, [{ info: 'Pendências indisponíveis.' }]));
+    ['c-simulados', 'c-coaching', 'c-ma', 'c-comites', 'c-emerg', 'c-acid', 'c-hub'].forEach(id => pinta(id, [{ info: 'Pendências indisponíveis.' }]));
     return;
   }
   if (!safra) { $('p-safra').textContent = 'Nenhuma safra cadastrada'; return; }
@@ -557,6 +594,7 @@ async function init() {
     pendMA(safra).catch(e => falhou('c-ma', e)),
     pendComites(safra).catch(e => falhou('c-comites', e)),
     pendEmerg(safra).catch(e => falhou('c-emerg', e)),
+    pendAcid(safra).catch(e => falhou('c-acid', e)),
     pendHub(safra).catch(e => falhou('c-hub', e))
   ]);
   $('rodape').textContent = `Números lidos do Supabase em ${fmtData(hojeISO)} às ${pad(agora.getHours())}:${pad(agora.getMinutes())}. Recarregue a página para atualizar.`;
