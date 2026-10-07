@@ -150,6 +150,19 @@ footer{max-width:1180px;margin:0 auto;padding:0 24px 30px;font-size:12px;color:v
   </section>
 
   <section class="grupo">
+    <h2>Comitês de SSMA</h2>
+    <p class="quem">Cronograma e baixa das reuniões de comitê das gerências.</p>
+    <div class="cards">
+      <article class="card" id="c-comites">
+        <div class="cab"><h3>Comitês de SSMA</h3>
+          <p class="desc">Reuniões bimestrais e quadrimestrais por gerência, com baixa e link da ata.</p></div>
+        <ul class="pend"><li class="carregando">Carregando pendências...</li></ul>
+        <div class="rodape"><span class="obs"></span><a class="btn" data-link="comites">Abrir</a></div>
+      </article>
+    </div>
+  </section>
+
+  <section class="grupo">
     <h2>Meio Ambiente</h2>
     <p class="quem">Registro das avaliações amostrais que alimentam o bloco Meio Ambiente do IP.</p>
     <div class="cards">
@@ -189,6 +202,7 @@ const LINKS = {
   simulados: 'https://tkichelewski-web.github.io/Cronograma-simulados/',
   coaching:  'https://tkichelewski-web.github.io/Cronograma-coaching/',
   ma:        'https://tkichelewski-web.github.io/indicadores-meio-ambiente/',
+  comites:   'https://tkichelewski-web.github.io/comites/',
   hub:       'https://tkichelewski-web.github.io/Hub-de-Integracao-e-Relatorios/'
 };
 
@@ -330,6 +344,28 @@ async function pendMA(safra) {
 }
 
 // ─────────────────────────────────────────────────────────────
+// Comitês: reuniões do mês sem baixa + meses anteriores sem baixa
+// ─────────────────────────────────────────────────────────────
+async function pendComites(safra) {
+  const { data, error } = await sb.from('comite_reunioes').select('mes_planejado,status,data_realizada').eq('safra_id', safra.id);
+  if (error) throw error;
+  const rs = data || [];
+  const doMes = rs.filter(r => r.mes_planejado === hojeMes);
+  const feitas = doMes.filter(r => r.status === 'Realizada' && r.data_realizada && r.data_realizada <= fimDoMes(r.mes_planejado)).length;
+  const semBaixa = doMes.filter(r => r.status === 'Planejada').length;
+  const atrasadas = rs.filter(r => r.mes_planejado < hojeMes && r.status === 'Planejada').length;
+  const itens = [];
+  if (!rs.length) itens.push({ info: 'Calendário de reuniões ainda não montado nesta safra.' });
+  else if (!doMes.length) itens.push({ n: 0, txt: 'reuniões planejadas para este mês', tipo: 'neutro' });
+  else {
+    itens.push({ n: `${feitas}/${doMes.length}`, txt: 'reuniões do mês realizadas', tipo: feitas >= doMes.length ? 'ok' : 'neutro' });
+    if (semBaixa) itens.push({ n: semBaixa, txt: plural(semBaixa, 'reunião aguardando baixa', 'reuniões aguardando baixa'), tipo: 'atencao' });
+  }
+  if (atrasadas) itens.push({ n: atrasadas, txt: plural(atrasadas, 'reunião de meses anteriores sem baixa', 'reuniões de meses anteriores sem baixa'), tipo: 'alerta' });
+  pinta('c-comites', itens, `Mês de ${nomeMes(hojeMes)}`);
+}
+
+// ─────────────────────────────────────────────────────────────
 // Hub: último mês com lançamento e mês anterior a fechar
 // ─────────────────────────────────────────────────────────────
 async function pendHub(safra) {
@@ -464,7 +500,7 @@ async function init() {
   catch (e) {
     $('p-safra').textContent = '';
     $('aviso').innerHTML = `<div class="aviso-login">Não consegui ler o Supabase (${esc(e.message)}). Os links funcionam normalmente; para ver as pendências, faça login no sistema principal neste navegador e recarregue.</div>`;
-    ['c-simulados', 'c-coaching', 'c-ma', 'c-hub'].forEach(id => pinta(id, [{ info: 'Pendências indisponíveis.' }]));
+    ['c-simulados', 'c-coaching', 'c-ma', 'c-comites', 'c-hub'].forEach(id => pinta(id, [{ info: 'Pendências indisponíveis.' }]));
     return;
   }
   if (!safra) { $('p-safra').textContent = 'Nenhuma safra cadastrada'; return; }
@@ -474,6 +510,7 @@ async function init() {
     pendSimulados(safra).catch(e => falhou('c-simulados', e)),
     pendCoaching(safra).catch(e => falhou('c-coaching', e)),
     pendMA(safra).catch(e => falhou('c-ma', e)),
+    pendComites(safra).catch(e => falhou('c-comites', e)),
     pendHub(safra).catch(e => falhou('c-hub', e))
   ]);
   $('rodape').textContent = `Números lidos do Supabase em ${fmtData(hojeISO)} às ${pad(agora.getHours())}:${pad(agora.getMinutes())}. Recarregue a página para atualizar.`;
