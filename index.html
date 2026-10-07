@@ -150,6 +150,19 @@ footer{max-width:1180px;margin:0 auto;padding:0 24px 30px;font-size:12px;color:v
   </section>
 
   <section class="grupo">
+    <h2>Emergência</h2>
+    <p class="quem">Cadastro e avaliação periódica dos equipamentos de emergência por local.</p>
+    <div class="cards">
+      <article class="card" id="c-emerg">
+        <div class="cab"><h3>Equipamentos de Emergência</h3>
+          <p class="desc">Alarmes, chuveiros, bombas, canhões, mangueiras e LGE: o que vence no mês e o que ficou sem avaliação.</p></div>
+        <ul class="pend"><li class="carregando">Carregando pendências...</li></ul>
+        <div class="rodape"><span class="obs"></span><a class="btn" data-link="emerg">Abrir</a></div>
+      </article>
+    </div>
+  </section>
+
+  <section class="grupo">
     <h2>Comitês de SSMA</h2>
     <p class="quem">Cronograma e baixa das reuniões de comitê das gerências.</p>
     <div class="cards">
@@ -209,6 +222,7 @@ const LINKS = {
   coaching:  'https://tkichelewski-web.github.io/Cronograma-coaching/',
   ma:        'https://tkichelewski-web.github.io/indicadores-meio-ambiente/',
   comites:   'https://tkichelewski-web.github.io/Comites-SSMA/',
+  emerg:     'https://tkichelewski-web.github.io/equipamentos-emergencia/',
   multas:    'https://tkichelewski-web.github.io/tratamento-multas-ip/',
   hub:       'https://tkichelewski-web.github.io/Hub-de-Integracao-e-Relatorios/'
 };
@@ -348,6 +362,30 @@ async function pendMA(safra) {
   if (naoConf) itens.push({ n: naoConf, txt: plural(naoConf, 'avaliação do mês com não conformidade', 'avaliações do mês com não conformidade'), tipo: 'alerta' });
   if (pares.size) itens.push({ n: `${nunca}/${pares.size}`, txt: `combinações gerência × indicador ainda não avaliadas na safra (${gersNunca} ${plural(gersNunca, 'gerência', 'gerências')})`, tipo: nunca ? 'atencao' : 'ok' });
   pinta('c-ma', itens, `Mês de ${nomeMes(hojeMes)}`);
+}
+
+// ─────────────────────────────────────────────────────────────
+// Equipamentos de emergência: vencimentos do mês e meses anteriores sem avaliação
+// (mesma regra de vencimento da tela e da visão emerg_ip)
+// ─────────────────────────────────────────────────────────────
+async function pendEmerg(safra) {
+  const [rl, ra] = await Promise.all([sb.from('emerg_locais').select('id,frequencia,inicio_mes,ativo,quantidade'), sb.from('emerg_avaliacoes').select('local_id,mes,qtd_operacional,qtd_om')]);
+  if (rl.error || ra.error) throw (rl.error || ra.error);
+  const locais = (rl.data || []).filter(l => l.ativo), avs = ra.data || [];
+  if (!locais.length) { pinta('c-emerg', [{ info: 'Nenhum local cadastrado ainda.' }]); return; }
+  const n = ym => Number(ym.slice(0, 4)) * 12 + Number(ym.slice(5, 7));
+  const vence = (l, ym) => { if (ym < l.inicio_mes) return false; const d = n(ym) - n(l.inicio_mes); return l.frequencia === 'MENSAL' || (l.frequencia === 'SEMESTRAL' && d % 6 === 0) || (l.frequencia === 'ANUAL' && d % 12 === 0); };
+  const tem = (l, ym) => avs.some(a => a.local_id === l.id && a.mes === ym);
+  const venc = locais.filter(l => vence(l, hojeMes));
+  const feitos = venc.filter(l => tem(l, hojeMes)).length;
+  let atrasados = 0;
+  const ini = safra.ano_ini + '-04';
+  locais.forEach(l => { for (let t = n(ini); t < n(hojeMes); t++) { const ym = Math.floor((t - 1) / 12) + '-' + String((t - 1) % 12 + 1).padStart(2, '0'); if (vence(l, ym) && !tem(l, ym)) atrasados++; } });
+  const itens = [];
+  if (!venc.length) itens.push({ n: 0, txt: 'avaliações vencendo neste mês', tipo: 'neutro' });
+  else itens.push({ n: `${feitos}/${venc.length}`, txt: 'avaliações do mês registradas', tipo: feitos >= venc.length ? 'ok' : 'atencao' });
+  if (atrasados) itens.push({ n: atrasados, txt: plural(atrasados, 'avaliação de meses anteriores não registrada', 'avaliações de meses anteriores não registradas'), tipo: 'alerta' });
+  pinta('c-emerg', itens, `Mês de ${nomeMes(hojeMes)}`);
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -507,7 +545,7 @@ async function init() {
   catch (e) {
     $('p-safra').textContent = '';
     $('aviso').innerHTML = `<div class="aviso-login">Não consegui ler o Supabase (${esc(e.message)}). Os links funcionam normalmente; para ver as pendências, faça login no sistema principal neste navegador e recarregue.</div>`;
-    ['c-simulados', 'c-coaching', 'c-ma', 'c-comites', 'c-hub'].forEach(id => pinta(id, [{ info: 'Pendências indisponíveis.' }]));
+    ['c-simulados', 'c-coaching', 'c-ma', 'c-comites', 'c-emerg', 'c-hub'].forEach(id => pinta(id, [{ info: 'Pendências indisponíveis.' }]));
     return;
   }
   if (!safra) { $('p-safra').textContent = 'Nenhuma safra cadastrada'; return; }
@@ -518,6 +556,7 @@ async function init() {
     pendCoaching(safra).catch(e => falhou('c-coaching', e)),
     pendMA(safra).catch(e => falhou('c-ma', e)),
     pendComites(safra).catch(e => falhou('c-comites', e)),
+    pendEmerg(safra).catch(e => falhou('c-emerg', e)),
     pendHub(safra).catch(e => falhou('c-hub', e))
   ]);
   $('rodape').textContent = `Números lidos do Supabase em ${fmtData(hojeISO)} às ${pad(agora.getHours())}:${pad(agora.getMinutes())}. Recarregue a página para atualizar.`;
