@@ -536,8 +536,8 @@ async function entrarComSenha(email, senha) {
 }
 // Mesmo cadastro do Sistema IP: tabela usuarios (ou convite em usuarios_pendentes)
 async function buscarUsuario(u) {
-  let { data } = await sb.from('usuarios').select('nome,perfil').eq('auth_id', u.id).maybeSingle();
-  if (data) return data;
+  let { data } = await sb.from('usuarios').select('*').eq('auth_id', u.id).maybeSingle();
+  if (data) return data.ativo === false ? { inativo: true } : data;
   const { data: pend } = await sb.from('usuarios_pendentes').select('*').eq('email', u.email).maybeSingle();
   if (!pend) return null;
   const { error } = await sb.from('usuarios').insert({ auth_id: u.id, nome: pend.nome, email: pend.email, perfil: pend.perfil, gerencia_id: pend.gerencia_id });
@@ -548,9 +548,9 @@ async function buscarUsuario(u) {
 async function aposLogin(user) {
   passo('carregando');
   const usr = await buscarUsuario(user);
-  if (!usr) {
+  if (!usr || usr.inativo) {
     await sb.auth.signOut();
-    passo('email'); lErro('Seu e-mail não tem acesso ao portal. Fale com o administrador.');
+    passo('email'); lErro(usr && usr.inativo ? 'Seu acesso ao portal foi desativado. Fale com o administrador.' : 'Seu e-mail não tem acesso ao portal. Fale com o administrador.');
     return;
   }
   const voltar = destinoVoltar();
